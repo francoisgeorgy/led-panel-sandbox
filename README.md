@@ -46,8 +46,6 @@ Install shady :
 
     go install github.com/polyfloyd/shady/cmd/shady@latest
 
-Copy the GLSL scripts : 
-
 On the cube, make a directory for the glsl scripts : 
 
     sudo mkdir /home/sandbox
@@ -62,7 +60,10 @@ Test `shady` :
     export EGL_PLATFORM=surfaceless
     export MESA_GL_VERSION_OVERRIDE=3.3
  
-    shady -ofmt rgb24 -g 192x128 -f 20 -i src/shaders/plasma.glsl -w \
+    shady -ofmt rgb24 -g 128x64 -f 20 -i src/shaders/example.frag -w \
         | sudo /home/cube/rpi-rgb-led-matrix/examples-api-use/ledcat \
-            --led-rows=64 --led-cols=64 --led-slowdown-gpio=5 \
-            --led-parallel=2 --led-chain=3 --led-brightness=33
+            --led-rows=64 --led-cols=128 --led-slowdown-gpio=5 \
+            --led-brightness=33
+
+## Learning shaders
+
