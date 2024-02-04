@@ -1,8 +1,8 @@
 // Adapted from https://github.com/polyfloyd/cube-shaders/tree/master/anim
 
-#pragma use "../lib/libcube-2chains.glsl"
-#pragma use "../lib/libcolor.glsl"
-#pragma use "../lib/libnoise.glsl"
+#pragma use "./lib/libcube-2chains.glsl"
+#pragma use "./lib/libcolor.glsl"
+#pragma use "./lib/libnoise.glsl"
 
 const float speed = 0.1;
 

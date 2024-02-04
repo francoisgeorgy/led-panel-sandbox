@@ -50,7 +50,8 @@ Copy the GLSL scripts :
 
 On the cube, make a directory for the glsl scripts : 
 
-    mkdir /home/sandbox
+    sudo mkdir /home/sandbox
+    sudo chown $USER:$USER /home/sandbox/
     cd /home/sandbox
     git clone https://github.com/francoisgeorgy/led-panel-sandbox.git .
 
@@ -61,7 +62,7 @@ Test `shady` :
     export EGL_PLATFORM=surfaceless
     export MESA_GL_VERSION_OVERRIDE=3.3
  
-    shady -ofmt rgb24 -g 192x128 -f 20 -i src/scripts/plasma.glsl -w \
-        | sudo /home/cube/rpi-rgb-led-matrix/examples-api-use/ledcat             
+    shady -ofmt rgb24 -g 192x128 -f 20 -i src/shaders/plasma.glsl -w \
+        | sudo /home/cube/rpi-rgb-led-matrix/examples-api-use/ledcat \
             --led-rows=64 --led-cols=64 --led-slowdown-gpio=5 \
             --led-parallel=2 --led-chain=3 --led-brightness=33
