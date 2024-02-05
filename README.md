@@ -93,7 +93,7 @@ Logout/login again to force the reload of .profile (you can also do `source .pro
 ### Test `ledcat` : 
 
     cat /dev/random | sudo /home/sandbox/rpi-rgb-led-matrix/examples-api-use/ledcat \
-        --led-rows=64 --led-cols=64 --led-chain=3 --led-parallel=2 --led-slowdown-gpio=5 --led-brightness=33
+        --led-rows=64 --led-cols=64 --led-slowdown-gpio=5
 
 
 ### Install `shady` :
