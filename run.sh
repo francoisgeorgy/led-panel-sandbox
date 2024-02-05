@@ -28,6 +28,6 @@ export EGL_PLATFORM=surfaceless
 export MESA_GL_VERSION_OVERRIDE=3.3
 
 shady -ofmt rgb24 -g 128x64 -f 20 -i "$script" -w \
-    | sudo /home/cube/rpi-rgb-led-matrix/examples-api-use/ledcat \
+    | sudo /home/sandbox/rpi-rgb-led-matrix/examples-api-use/ledcat \
         --led-rows=64 --led-cols=128 --led-slowdown-gpio=5 \
         --led-brightness=$brightness --led-rgb-sequence=bgr
