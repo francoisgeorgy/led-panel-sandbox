@@ -1,9 +1,8 @@
-#!/usr/bin/env python
-# Display a runtext with double-buffering.
 import os
 
+from color import Color
+from font import Font
 from samplebase import SampleBase
-from RGBMatrixEmulator import graphics, Color
 import time
 
 
@@ -21,8 +20,6 @@ def __actual_width(font, letter):
 
 
 def text_len(font, text):
-    # character_widths = [__actual_width(font, letter) for letter in text]
-    # return sum(character_widths)
     return sum([__actual_width(font, letter) for letter in text])
 
 
@@ -30,19 +27,6 @@ def draw_text(canvas, font, x, y, color, text, window_width=-1, text_offset=0,
               wrap_around=False, wrap_positive_only=True,
               color_callback=None):
     """
-        +-------------+     +-------------+
-        |             |     |             |
-    ABCDEFGHIJKLMNOPQRSTUVWXYZ  ABCDEFGHIJKLMNOPQRSTUVWXYZ
-        |             |     |             |
-        +-------------+     +-------------+
-        x             x+w
-
-    The "x" and "w" params to define a "window" in which to draw the text.
-           If the text ends before the end of the window, a zero or positive wrap-around value
-           will tell to "wrap the text" after a space of "wrap-around" pixels.
-
-           By default, the window width will be equal of (canvas.width - x) and the
-           wrap-around value will be -1 to signify "no wrap-around".
 
     :param canvas:
     :param font:
@@ -105,83 +89,96 @@ def draw_text(canvas, font, x, y, color, text, window_width=-1, text_offset=0,
     return print_width, text_height
 
 
-def scroll_text(canvas, font, text, color, wx, wy, wd, initial_offset=0,
-                wrap_around = False,
-                wrap_when_pos_offset=True, speed=1.0,
-                border=False, border_color=Color(255, 255, 255),
-                color_callback=None):
+class ScrollTextDemo(SampleBase):
 
-    t_len = text_len(font, text)
-    y_offset = -(font.headers['fbby'] + font.headers['fbbyoff'])
-    wrap_positive_only = wrap_when_pos_offset
-
-    offset = initial_offset
-    while True:
-        ioffset = int(offset)
-
-        w, h = draw_text(canvas, font, wx, wy, color, text, text_offset=ioffset, window_width=wd,
-                         wrap_around=wrap_around, wrap_positive_only=wrap_positive_only,
-                         color_callback=color_callback)
-
-        if border:
-            graphics.DrawLine(canvas, wx - 1, wy + y_offset + h, wx + w, wy + y_offset + h, border_color)
-            graphics.DrawLine(canvas, wx - 1, wy + y_offset,     wx + w, wy + y_offset,     border_color)
-            graphics.DrawLine(canvas, wx - 1, wy + y_offset,     wx - 1, wy + y_offset + h, border_color)
-            graphics.DrawLine(canvas, wx + w, wy + y_offset,     wx + w, wy + y_offset + h, border_color)
-
-        offset = offset + 1 * speed
-
-        if wrap_around and not wrap_positive_only and wrap_when_pos_offset and offset >= 0:
-            wrap_positive_only = True
-
-        if wrap_around:
-            if offset > 0:
-                offset = offset % t_len
-        else:
-            # same behavior
-            if offset >= t_len:
-                offset = initial_offset
-
-        yield
-
-
-class RunText(SampleBase):
     def __init__(self, *args, **kwargs):
-        super(RunText, self).__init__(*args, **kwargs)
-        self.parser.add_argument("-t", "--text", help="The text to scroll on the RGB LED panel", default="Hello world!")
+        super().__init__(*args, **kwargs)
+        # Add additional command line options :
+        self.parser.add_argument("-t", "--text", help="The text to scroll on the RGB LED panel", default="Hello World!")
+
+    def scroll_text(self, font, text, color, wx, wy, wd, initial_offset=0,
+                    wrap_around=False,
+                    wrap_when_pos_offset=True, speed=1.0,
+                    border=False, border_color=Color(255, 255, 255),
+                    color_callback=None):
+
+        t_len = text_len(font, text)
+        y_offset = -(font.headers['fbby'] + font.headers['fbbyoff'])
+        wrap_positive_only = wrap_when_pos_offset
+
+        offset = initial_offset
+        while True:
+            ioffset = int(offset)
+
+            w, h = draw_text(self.canvas, font, wx, wy, color, text, text_offset=ioffset, window_width=wd,
+                             wrap_around=wrap_around, wrap_positive_only=wrap_positive_only,
+                             color_callback=color_callback)
+
+            if border:
+                self.line(wx - 1, wy + y_offset + h, wx + w, wy + y_offset + h, border_color)
+                self.line(wx - 1, wy + y_offset, wx + w, wy + y_offset, border_color)
+                self.line(wx - 1, wy + y_offset, wx - 1, wy + y_offset + h, border_color)
+                self.line(wx + w, wy + y_offset, wx + w, wy + y_offset + h, border_color)
+
+            offset = offset + 1 * speed
+
+            if wrap_around and not wrap_positive_only and wrap_when_pos_offset and offset >= 0:
+                wrap_positive_only = True
+
+            if wrap_around:
+                if offset > 0:
+                    offset = offset % t_len
+            else:
+                # same behavior
+                if offset >= t_len:
+                    offset = initial_offset
+
+            yield
 
     def run(self):
 
+        text = self.args.text
+
         fonts_path = f'{os.path.dirname(__file__)}/../../fonts'
 
-        offscreen_canvas = self.matrix.CreateFrameCanvas()
-        font = graphics.Font()
+        # font = rgb_graphics.Font()
+        font = Font()
         font.LoadFont(f"{fonts_path}/10x20.bdf")
-        text = self.args.text
-        t_len = text_len(font, text)
+        # t_len = text_len(font, text)
 
-        offscreen_canvas.Clear()
-        offscreen_canvas = self.matrix.SwapOnVSync(offscreen_canvas)
+        font2 = Font()
+        font2.LoadFont(f"{fonts_path}/7x13.bdf")
 
-        scroller1 = scroll_text(offscreen_canvas, font, text, Color(0, 255, 0),
-                                initial_offset=-80, wx=10, wy=20, wd=80,
-                                wrap_around=False,
-                                border=True, border_color=Color(200, 200, 200))
-        scroller2 = scroll_text(offscreen_canvas, font, text, Color(255, 0, 0),
-                                initial_offset=-80, wx=10, wy=50, wd=80, speed=1.0,
-                                wrap_around=True,
-                                border=True, border_color=Color(200, 200, 200),
-                                color_callback=lambda xt: Color(xt/t_len*255, 100, 0))
+        self.clear()
+        self.refresh()
+
+        scroller1 = self.scroll_text(font, text, Color(0, 255, 0),
+                                     initial_offset=-80, wx=10, wy=20, wd=80,
+                                     wrap_around=False,
+                                     border=True, border_color=Color(200, 200, 200))
+        scroller2 = self.scroll_text(font2, text, Color(255, 0, 0),
+                                     initial_offset=-60, wx=16, wy=50, wd=60, speed=1.5,
+                                     wrap_around=True,
+                                     border=True, border_color=Color(0, 200, 200))
+        scroller3 = self.scroll_text(font, text, Color(0, 255, 0),
+                                     initial_offset=-40, wx=65, wy=30, wd=40, speed=1.0,
+                                     wrap_around=True,
+                                     border=True, border_color=Color(255, 200, 0))
+        # color_callback=lambda xt: Color(xt/t_len*255, 100, 0))
         while True:
-            offscreen_canvas.Clear()
+            self.clear()
             next(scroller1)
             next(scroller2)
-            offscreen_canvas = self.matrix.SwapOnVSync(offscreen_canvas)
-            time.sleep(0.05)
+            self.rectangle(65, 30-16, 65+40, 30+3, Color.BLUE(), fill=True)
+            next(scroller3)
+            self.refresh()
+            time.sleep(0.03)
 
 
-# Main function
 if __name__ == "__main__":
-    run_text = RunText()
-    if not run_text.process():
-        run_text.print_help()
+    s = ScrollTextDemo()
+    try:
+        s.setup()
+        s.run()
+    except KeyboardInterrupt:
+        s.clear()

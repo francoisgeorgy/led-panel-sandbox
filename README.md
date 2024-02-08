@@ -137,3 +137,11 @@ Tools :
 - https://iquilezles.org/articles/distfunctions2d/
 - https://graphtoy.com/
  
+## Python
+
+    cd /home/sandbox
+    python3 -m venv --system-site-packages .venv
+    source .venv/bin/activate
+    pip install RGBMatrixEmulator
+
+    
