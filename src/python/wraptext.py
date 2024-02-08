@@ -25,7 +25,10 @@ def text_len(font, text):
     # return sum(character_widths)
     return sum([__actual_width(font, letter) for letter in text])
 
-def draw_text(canvas, font, x, y, color, text, window_width=-1, text_offset=0, wrap_around=False):
+
+def draw_text(canvas, font, x, y, color, text, window_width=-1, text_offset=0,
+              wrap_around=False, wrap_positive_only=True,
+              color_callback=None):
     """
         +-------------+     +-------------+
         |             |     |             |
@@ -81,7 +84,7 @@ def draw_text(canvas, font, x, y, color, text, window_width=-1, text_offset=0, w
     else:
         print_width = window_width
 
-    print(f"print text from {text_offset} to {text_offset + print_width} at position {x}")
+    # print(f"print text from {text_offset} to {text_offset + print_width} at position {x}")
 
     if isinstance(color, tuple):
         c = Color(color.red, color.green, color.blue)
@@ -90,16 +93,22 @@ def draw_text(canvas, font, x, y, color, text, window_width=-1, text_offset=0, w
     save_c = c
 
     for i in range(print_width):
-        c = save_c
+        # c = save_c
         # text X :
         xt = text_offset + i
         # print(f"{xt} : ", end='')
+
+        if color_callback:
+            c = color_callback(xt)
+        else:
+            c = save_c
+
         if xt < 0:
-            if wrap_around:
+            if wrap_around and not wrap_positive_only:
                 # print(f"{xt} < 0", end='')
                 # update xt
                 xt = xt % total_width
-                c = Color(255, 0, 0)
+                # c = Color(255, 0, 0)
             else:
                 # update xt
                 continue
@@ -108,7 +117,7 @@ def draw_text(canvas, font, x, y, color, text, window_width=-1, text_offset=0, w
                 # print(f"{xt} >= {total_width}", end='')
                 # update xt
                 xt = xt % total_width
-                c = Color(0, 0, 255)
+                # c = Color(0, 0, 255)
             else:
                 # update xt
                 continue
@@ -121,8 +130,62 @@ def draw_text(canvas, font, x, y, color, text, window_width=-1, text_offset=0, w
                 canvas.SetPixel(x + i, y + j + font_y_offset, c.red, c.green, c.blue)
             j = j + 1
 
-
     return total_width
+
+
+def scroll_text(canvas, font, text, color, wx, wy, wd, initial_offset=0,
+                wrap_around = False,
+                wrap_when_pos_offset=True, speed=1.0,
+                border=False, border_color=Color(255, 255, 255),
+                color_callback=None):
+
+    t_len = text_len(font, text)
+    # print("text length:", t_len)
+
+    font_y_offset = -(font.headers['fbby'] + font.headers['fbbyoff'])
+    # print("font_y_offset:", font_y_offset)
+
+    # wx = 10
+    # wy = 30
+    # wd = 80
+
+    # wrap_positive_only = True
+
+    wrap_positive_only = wrap_when_pos_offset
+    # offset_x = wd
+    offset = initial_offset
+    while True:
+        ioffset = int(offset)
+
+        if border:
+            graphics.DrawLine(canvas, wx - 1, wy - 1 + 20 + font_y_offset, wx + 0 + wd, wy - 1 + 20 + font_y_offset,
+                              border_color)
+            graphics.DrawLine(canvas, wx - 1, wy - 1 + 0 + font_y_offset, wx + 0 + wd, wy - 1 + 0 + font_y_offset,
+                              border_color)
+            graphics.DrawLine(canvas, wx - 1, wy - 1 + 0 + font_y_offset, wx - 1, wy - 1 + 20 + font_y_offset,
+                              border_color)
+            graphics.DrawLine(canvas, wx + 0 + wd, wy - 1 + 0 + font_y_offset, wx + 0 + wd, wy - 1 + 20 + font_y_offset,
+                              border_color)
+
+        draw_text(canvas, font, wx, wy, color, text, text_offset=ioffset, window_width=wd,
+                  wrap_around=wrap_around, wrap_positive_only=wrap_positive_only, color_callback=color_callback)
+
+        # wrap_around=wrap, wrap_positive_only=True)
+
+        offset = offset + 1 * speed
+
+        if wrap_around and not wrap_positive_only and wrap_when_pos_offset and offset >= 0:
+            wrap_positive_only = True
+
+        if wrap_around:
+            if offset > 0:
+                offset = offset % t_len
+        else:
+            # same behavior
+            if offset >= t_len:
+                offset = initial_offset
+
+        yield
 
 
 class RunText(SampleBase):
@@ -145,10 +208,14 @@ class RunText(SampleBase):
 
         offset = 30
 
-        graphics.DrawLine(canvas, wx-1, wy-1+20+font_y_offset, wx+0+wd, wy-1+20+font_y_offset, Color(200, 200, 200))
-        graphics.DrawLine(canvas, wx-1, wy-1+0+font_y_offset, wx+0+wd, wy-1+0+font_y_offset, Color(200, 200, 200))
-        graphics.DrawLine(canvas, wx-1, wy-1+0+font_y_offset, wx-1, wy-1+20+font_y_offset, Color(200, 200, 200))
-        graphics.DrawLine(canvas, wx+0+wd, wy-1+0+font_y_offset, wx+0+wd, wy-1+20+font_y_offset, Color(200, 200, 200))
+        graphics.DrawLine(canvas, wx - 1, wy - 1 + 20 + font_y_offset, wx + 0 + wd, wy - 1 + 20 + font_y_offset,
+                          Color(200, 200, 200))
+        graphics.DrawLine(canvas, wx - 1, wy - 1 + 0 + font_y_offset, wx + 0 + wd, wy - 1 + 0 + font_y_offset,
+                          Color(200, 200, 200))
+        graphics.DrawLine(canvas, wx - 1, wy - 1 + 0 + font_y_offset, wx - 1, wy - 1 + 20 + font_y_offset,
+                          Color(200, 200, 200))
+        graphics.DrawLine(canvas, wx + 0 + wd, wy - 1 + 0 + font_y_offset, wx + 0 + wd, wy - 1 + 20 + font_y_offset,
+                          Color(200, 200, 200))
 
         draw_text(canvas, font, wx, wy, text_color, text, text_offset=offset, window_width=wd, wrap_around=True)
         canvas = self.matrix.SwapOnVSync(canvas)
@@ -172,10 +239,14 @@ class RunText(SampleBase):
         offset = 40
         while True:
             canvas.Clear()
-            graphics.DrawLine(canvas, wx-1, wy-1+20+font_y_offset, wx+0+wd, wy-1+20+font_y_offset, Color(200, 200, 200))
-            graphics.DrawLine(canvas, wx-1, wy-1+0+font_y_offset, wx+0+wd, wy-1+0+font_y_offset, Color(200, 200, 200))
-            graphics.DrawLine(canvas, wx-1, wy-1+0+font_y_offset, wx-1, wy-1+20+font_y_offset, Color(200, 200, 200))
-            graphics.DrawLine(canvas, wx+0+wd, wy-1+0+font_y_offset, wx+0+wd, wy-1+20+font_y_offset, Color(200, 200, 200))
+            graphics.DrawLine(canvas, wx - 1, wy - 1 + 20 + font_y_offset, wx + 0 + wd, wy - 1 + 20 + font_y_offset,
+                              Color(200, 200, 200))
+            graphics.DrawLine(canvas, wx - 1, wy - 1 + 0 + font_y_offset, wx + 0 + wd, wy - 1 + 0 + font_y_offset,
+                              Color(200, 200, 200))
+            graphics.DrawLine(canvas, wx - 1, wy - 1 + 0 + font_y_offset, wx - 1, wy - 1 + 20 + font_y_offset,
+                              Color(200, 200, 200))
+            graphics.DrawLine(canvas, wx + 0 + wd, wy - 1 + 0 + font_y_offset, wx + 0 + wd, wy - 1 + 20 + font_y_offset,
+                              Color(200, 200, 200))
 
             draw_text(canvas, font, wx, wy, text_color, text, text_offset=offset, window_width=wd, wrap_around=True)
             offset = offset + 1
@@ -185,7 +256,6 @@ class RunText(SampleBase):
             canvas = self.matrix.SwapOnVSync(canvas)
             time.sleep(0.1)
             # break
-
 
     def scroll_test_3(self, canvas, font, text, wrap_when_pos_offset=True):
         text_color = graphics.Color(255, 255, 0)
@@ -205,10 +275,14 @@ class RunText(SampleBase):
         offset = -80
         while True:
             canvas.Clear()
-            graphics.DrawLine(canvas, wx-1, wy-1+20+font_y_offset, wx+0+wd, wy-1+20+font_y_offset, Color(200, 200, 200))
-            graphics.DrawLine(canvas, wx-1, wy-1+0+font_y_offset, wx+0+wd, wy-1+0+font_y_offset, Color(200, 200, 200))
-            graphics.DrawLine(canvas, wx-1, wy-1+0+font_y_offset, wx-1, wy-1+20+font_y_offset, Color(200, 200, 200))
-            graphics.DrawLine(canvas, wx+0+wd, wy-1+0+font_y_offset, wx+0+wd, wy-1+20+font_y_offset, Color(200, 200, 200))
+            graphics.DrawLine(canvas, wx - 1, wy - 1 + 20 + font_y_offset, wx + 0 + wd, wy - 1 + 20 + font_y_offset,
+                              Color(200, 200, 200))
+            graphics.DrawLine(canvas, wx - 1, wy - 1 + 0 + font_y_offset, wx + 0 + wd, wy - 1 + 0 + font_y_offset,
+                              Color(200, 200, 200))
+            graphics.DrawLine(canvas, wx - 1, wy - 1 + 0 + font_y_offset, wx - 1, wy - 1 + 20 + font_y_offset,
+                              Color(200, 200, 200))
+            graphics.DrawLine(canvas, wx + 0 + wd, wy - 1 + 0 + font_y_offset, wx + 0 + wd, wy - 1 + 20 + font_y_offset,
+                              Color(200, 200, 200))
 
             draw_text(canvas, font, wx, wy, text_color, text, text_offset=offset, window_width=wd, wrap_around=wrap)
             offset = offset + 1
@@ -229,7 +303,6 @@ class RunText(SampleBase):
             # break
             # input()
 
-
     def run(self):
 
         fonts_path = f'{os.path.dirname(__file__)}/../../fonts'
@@ -238,11 +311,9 @@ class RunText(SampleBase):
         font = graphics.Font()
         font.LoadFont(f"{fonts_path}/10x20.bdf")
         # text_color = graphics.Color(255, 255, 0)
-        my_text = self.args.text
-        #
-        # t_len = text_len(font, my_text)
+        text = self.args.text
+        t_len = text_len(font, text)
         # print("text length:", t_len)
-        #
         # font_y_offset = -(font.headers['fbby'] + font.headers['fbbyoff'])
         # print("font_y_offset:", font_y_offset)
 
@@ -251,16 +322,23 @@ class RunText(SampleBase):
 
         print('go?')
         input()
-        self.scroll_test_3(offscreen_canvas, font, my_text, wrap_when_pos_offset=True)
+        # self.scroll_test_3(offscreen_canvas, font, my_text, wrap_when_pos_offset=True)
 
-        # offscreen_canvas.Clear()
-
-        # print("done")
-        # input()
-
-        # pos = -offscreen_canvas.width
-        # # pos = 150   # debug, gagner du temps
-        # wrap = False
+        scroller1 = scroll_text(offscreen_canvas, font, text, Color(0, 255, 0),
+                                initial_offset=-80, wx=10, wy=20, wd=80,
+                                wrap_around=False,
+                                border=True, border_color=Color(200, 200, 200))
+        scroller2 = scroll_text(offscreen_canvas, font, text, Color(255, 0, 0),
+                                initial_offset=-80, wx=10, wy=50, wd=80, speed=1.0,
+                                wrap_around=True,
+                                border=True, border_color=Color(200, 200, 200),
+                                color_callback=lambda xt: Color(xt/t_len*255, 100, 0))
+        while True:
+            offscreen_canvas.Clear()
+            next(scroller1)
+            next(scroller2)
+            offscreen_canvas = self.matrix.SwapOnVSync(offscreen_canvas)
+            time.sleep(0.05)
 
 
 # Main function
