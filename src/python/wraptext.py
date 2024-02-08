@@ -3,7 +3,7 @@
 import os
 
 from samplebase import SampleBase
-from RGBMatrixEmulator import graphics
+from RGBMatrixEmulator import graphics, Color
 import time
 
 
@@ -83,97 +83,44 @@ def draw_text(canvas, font, x, y, color, text, window_width=-1, text_offset=0, w
 
     print(f"print text from {text_offset} to {text_offset + print_width} at position {x}")
 
+    if isinstance(color, tuple):
+        c = Color(color.red, color.green, color.blue)
+    else:
+        c = color
+    save_c = c
+
     for i in range(print_width):
+        c = save_c
         # text X :
         xt = text_offset + i
+        # print(f"{xt} : ", end='')
         if xt < 0:
             if wrap_around:
+                # print(f"{xt} < 0", end='')
                 # update xt
-                continue
+                xt = xt % total_width
+                c = Color(255, 0, 0)
             else:
                 # update xt
                 continue
-        elif xt >= total_width :
+        elif xt >= total_width:
             if wrap_around:
+                # print(f"{xt} >= {total_width}", end='')
                 # update xt
-                continue
+                xt = xt % total_width
+                c = Color(0, 0, 255)
             else:
                 # update xt
                 continue
         # print text column xt :
-        print(f"print text column {xt}")
+        # print(f' print text[{xt}] at {x+i}')
         j = 0
         for row in text_map:
             # set pixel at (x + i, y)
             if row[xt]:
-                if isinstance(color, tuple):
-                    canvas.SetPixel(x + i, y + j + font_y_offset, *color)
-                else:
-                    canvas.SetPixel(x + i, y + j + font_y_offset, color.red, color.green, color.blue)
+                canvas.SetPixel(x + i, y + j + font_y_offset, c.red, c.green, c.blue)
             j = j + 1
 
-    # xi = -1
-    # for y2, row in enumerate(text_map):
-    #     if y2 != 16:    # DEBUG
-    #         continue
-    #     for x2, value in enumerate(row):
-    #         if value == 1:
-    #             # print(f"x={x} o={o} x2={x2} wd={wd} xi={xi}")
-    #             if x2 < text_offset:
-    #                 continue
-    #             xi = x - text_offset + x2
-    #             if xi > print_width:
-    #                 # print("wrap?", x, o, x2, x - o + x2, wd)
-    #                 # continue
-    #                 break
-    #             try:
-    #                 # print(f"x={x} o={o} x2={x2} wd={wd} xi={x - o + x2}")
-    #                 # if wrap_around:
-    #                 #     pass
-    #                     # xi = (x + x2) % canvas.width
-    #                     # # print(total_width, x, x2, x+x2, xi)
-    #                     # # break
-    #                     # if xi < x + x2:
-    #                     #     xi = x + x2
-    #                 # else:
-    #                 # xi = x - o + x2
-    #                 if 0 <= xi < canvas.width:
-    #                     # print(f"print! x2={x2} x={x} o={o} wd={wd} xi={xi}")
-    #                     if isinstance(color, tuple):
-    #                         canvas.SetPixel(xi, y + y2 + font_y_offset, *color)
-    #                     else:
-    #                         canvas.SetPixel(xi, y + y2 + font_y_offset, color.red, color.green, color.blue)
-    #             except Exception:
-    #                 pass
-    #
-    # if wrap_around and (x2 >= (total_width - 1)):
-    #     # print(f"end: x2={x2}, xi={xi}")
-    #     if xi < print_width:
-    #         # wrap around
-    #         print(f"wrap around at xi={xi} x2={x2}")
-    #         # o is replaced by xi
-    #         for y2, row in enumerate(text_map):
-    #             if y2 != 16:    # DEBUG
-    #                 continue
-    #             for x2, value in enumerate(row):
-    #                 if value == 1:
-    #                     # print(f"x={x} o={o} x2={x2} wd={wd} xi={xi}")
-    #                     # if x2 < o:
-    #                     #     continue
-    #                     xj = x - xi + x2
-    #                     if xj > print_width:
-    #                         # print("wrap?", x, o, x2, x - o + x2, wd)
-    #                         # continue
-    #                         break
-    #                     try:
-    #                         if 0 <= xj < canvas.width:
-    #                             # print(f"print! x2={x2} x={x} o={o} wd={wd} xi={xi}")
-    #                             if isinstance(color, tuple):
-    #                                 canvas.SetPixel(xj, y + y2 + font_y_offset, *color)
-    #                             else:
-    #                                 canvas.SetPixel(xj, y + y2 + font_y_offset, color.red, color.green, color.blue)
-    #                     except Exception:
-    #                         pass
 
     return total_width
 
@@ -196,50 +143,82 @@ class RunText(SampleBase):
         t_len = text_len(font, my_text)
         print("text length:", t_len)
 
+        font_y_offset = -(font.headers['fbby'] + font.headers['fbbyoff'])
+        print("font_y_offset:", font_y_offset)
+
         offscreen_canvas.Clear()
-        draw_text(offscreen_canvas, font, 0, 30, text_color, my_text, text_offset=-5, window_width=40)
-        offscreen_canvas = self.matrix.SwapOnVSync(offscreen_canvas)
-        print("return to quit")
-        input()
-        return
 
+        wx = 10
+        wy = 30
+        wd = 80
 
-        pos = -offscreen_canvas.width
-        # pos = 150   # debug, gagner du temps
-        wrap = False
+        # offset = 30
+        #
+        # graphics.DrawLine(offscreen_canvas, wx-1, wy-1+20+font_y_offset, wx+0+wd, wy-1+20+font_y_offset, Color(200, 200, 200))
+        # graphics.DrawLine(offscreen_canvas, wx-1, wy-1+0+font_y_offset, wx+0+wd, wy-1+0+font_y_offset, Color(200, 200, 200))
+        # graphics.DrawLine(offscreen_canvas, wx-1, wy-1+0+font_y_offset, wx-1, wy-1+20+font_y_offset, Color(200, 200, 200))
+        # graphics.DrawLine(offscreen_canvas, wx+0+wd, wy-1+0+font_y_offset, wx+0+wd, wy-1+20+font_y_offset, Color(200, 200, 200))
+        #
+        # draw_text(offscreen_canvas, font, wx, wy, text_color, my_text, text_offset=offset, window_width=wd, wrap_around=True)
+        # offscreen_canvas = self.matrix.SwapOnVSync(offscreen_canvas)
+        # print("return to quit")
+        # input()
+        # return
+
+        offset = 40
         while True:
             offscreen_canvas.Clear()
+            graphics.DrawLine(offscreen_canvas, wx-1, wy-1+20+font_y_offset, wx+0+wd, wy-1+20+font_y_offset, Color(200, 200, 200))
+            graphics.DrawLine(offscreen_canvas, wx-1, wy-1+0+font_y_offset, wx+0+wd, wy-1+0+font_y_offset, Color(200, 200, 200))
+            graphics.DrawLine(offscreen_canvas, wx-1, wy-1+0+font_y_offset, wx-1, wy-1+20+font_y_offset, Color(200, 200, 200))
+            graphics.DrawLine(offscreen_canvas, wx+0+wd, wy-1+0+font_y_offset, wx+0+wd, wy-1+20+font_y_offset, Color(200, 200, 200))
 
-            draw_text(offscreen_canvas, font, 0, 30, text_color, my_text)
+            draw_text(offscreen_canvas, font, wx, wy, text_color, my_text, text_offset=offset, window_width=wd, wrap_around=True)
+            offset = (offset + 1) % t_len
 
-            # len = graphics.DrawText(offscreen_canvas, font, pos, 30, text_color, my_text)
-            t_len = draw_text(offscreen_canvas, font, 0, 30, text_color, my_text, text_offset=pos, wrap_around=wrap)
-            # if pos < 0:
-            pos += 1
-
-            # no wrap-around:
-            # if pos >= t_len:
-            #     pos = -offscreen_canvas.width
-
-            # input()
-
-            # wrap-around:
-            if pos >= t_len:
-                print(f"pos >= t_len {pos}")
-                # pos = t_len - offscreen_canvas.width
-                pos = 0
-                wrap = True
-
-            # else:
-            #     pos
-            # if pos < 0:
-            #     pos = offscreen_canvas.width
-                # wrap = True
-            # if pos + t_len < 0:
-            #     pos = offscreen_canvas.width
-
-            time.sleep(0.05)
             offscreen_canvas = self.matrix.SwapOnVSync(offscreen_canvas)
+            # time.sleep(0.1)
+            # break
+
+        # print("done")
+        # input()
+
+        # pos = -offscreen_canvas.width
+        # # pos = 150   # debug, gagner du temps
+        # wrap = False
+        # while True:
+        #     offscreen_canvas.Clear()
+        #
+        #     draw_text(offscreen_canvas, font, 0, 30, text_color, my_text)
+        #
+        #     # len = graphics.DrawText(offscreen_canvas, font, pos, 30, text_color, my_text)
+        #     t_len = draw_text(offscreen_canvas, font, 0, 30, text_color, my_text, text_offset=pos, wrap_around=wrap)
+        #     # if pos < 0:
+        #     pos += 1
+        #
+        #     # no wrap-around:
+        #     # if pos >= t_len:
+        #     #     pos = -offscreen_canvas.width
+        #
+        #     # input()
+        #
+        #     # wrap-around:
+        #     if pos >= t_len:
+        #         print(f"pos >= t_len {pos}")
+        #         # pos = t_len - offscreen_canvas.width
+        #         pos = 0
+        #         wrap = True
+        #
+        #     # else:
+        #     #     pos
+        #     # if pos < 0:
+        #     #     pos = offscreen_canvas.width
+        #         # wrap = True
+        #     # if pos + t_len < 0:
+        #     #     pos = offscreen_canvas.width
+        #
+        #     time.sleep(0.05)
+        #     offscreen_canvas = self.matrix.SwapOnVSync(offscreen_canvas)
 
 
 # Main function
