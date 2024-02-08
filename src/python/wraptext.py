@@ -130,6 +130,106 @@ class RunText(SampleBase):
         super(RunText, self).__init__(*args, **kwargs)
         self.parser.add_argument("-t", "--text", help="The text to scroll on the RGB LED panel", default="Hello world!")
 
+    def scroll_test_1(self, canvas, font, text):
+        text_color = graphics.Color(255, 255, 0)
+
+        t_len = text_len(font, text)
+        print("text length:", t_len)
+
+        font_y_offset = -(font.headers['fbby'] + font.headers['fbbyoff'])
+        print("font_y_offset:", font_y_offset)
+
+        wx = 10
+        wy = 30
+        wd = 80
+
+        offset = 30
+
+        graphics.DrawLine(canvas, wx-1, wy-1+20+font_y_offset, wx+0+wd, wy-1+20+font_y_offset, Color(200, 200, 200))
+        graphics.DrawLine(canvas, wx-1, wy-1+0+font_y_offset, wx+0+wd, wy-1+0+font_y_offset, Color(200, 200, 200))
+        graphics.DrawLine(canvas, wx-1, wy-1+0+font_y_offset, wx-1, wy-1+20+font_y_offset, Color(200, 200, 200))
+        graphics.DrawLine(canvas, wx+0+wd, wy-1+0+font_y_offset, wx+0+wd, wy-1+20+font_y_offset, Color(200, 200, 200))
+
+        draw_text(canvas, font, wx, wy, text_color, text, text_offset=offset, window_width=wd, wrap_around=True)
+        canvas = self.matrix.SwapOnVSync(canvas)
+        print("return to quit")
+        input()
+        return
+
+    def scroll_test_2(self, canvas, font, text):
+        text_color = graphics.Color(255, 255, 0)
+
+        t_len = text_len(font, text)
+        print("text length:", t_len)
+
+        font_y_offset = -(font.headers['fbby'] + font.headers['fbbyoff'])
+        print("font_y_offset:", font_y_offset)
+
+        wx = 10
+        wy = 30
+        wd = 80
+
+        offset = 40
+        while True:
+            canvas.Clear()
+            graphics.DrawLine(canvas, wx-1, wy-1+20+font_y_offset, wx+0+wd, wy-1+20+font_y_offset, Color(200, 200, 200))
+            graphics.DrawLine(canvas, wx-1, wy-1+0+font_y_offset, wx+0+wd, wy-1+0+font_y_offset, Color(200, 200, 200))
+            graphics.DrawLine(canvas, wx-1, wy-1+0+font_y_offset, wx-1, wy-1+20+font_y_offset, Color(200, 200, 200))
+            graphics.DrawLine(canvas, wx+0+wd, wy-1+0+font_y_offset, wx+0+wd, wy-1+20+font_y_offset, Color(200, 200, 200))
+
+            draw_text(canvas, font, wx, wy, text_color, text, text_offset=offset, window_width=wd, wrap_around=True)
+            offset = offset + 1
+            if offset > 0:
+                offset = offset % t_len
+
+            canvas = self.matrix.SwapOnVSync(canvas)
+            time.sleep(0.1)
+            # break
+
+
+    def scroll_test_3(self, canvas, font, text, wrap_when_pos_offset=True):
+        text_color = graphics.Color(255, 255, 0)
+
+        t_len = text_len(font, text)
+        print("text length:", t_len)
+
+        font_y_offset = -(font.headers['fbby'] + font.headers['fbbyoff'])
+        print("font_y_offset:", font_y_offset)
+
+        wx = 10
+        wy = 30
+        wd = 80
+
+        wrap = False
+        # offset_x = wd
+        offset = -80
+        while True:
+            canvas.Clear()
+            graphics.DrawLine(canvas, wx-1, wy-1+20+font_y_offset, wx+0+wd, wy-1+20+font_y_offset, Color(200, 200, 200))
+            graphics.DrawLine(canvas, wx-1, wy-1+0+font_y_offset, wx+0+wd, wy-1+0+font_y_offset, Color(200, 200, 200))
+            graphics.DrawLine(canvas, wx-1, wy-1+0+font_y_offset, wx-1, wy-1+20+font_y_offset, Color(200, 200, 200))
+            graphics.DrawLine(canvas, wx+0+wd, wy-1+0+font_y_offset, wx+0+wd, wy-1+20+font_y_offset, Color(200, 200, 200))
+
+            draw_text(canvas, font, wx, wy, text_color, text, text_offset=offset, window_width=wd, wrap_around=wrap)
+            offset = offset + 1
+
+            if not wrap and wrap_when_pos_offset and offset >= 0:
+                wrap = True
+
+            if wrap:
+                if offset > 0:
+                    offset = offset % t_len
+            else:
+                # same behavior
+                if offset >= t_len:
+                    offset = -80
+
+            canvas = self.matrix.SwapOnVSync(canvas)
+            time.sleep(0.05)
+            # break
+            # input()
+
+
     def run(self):
 
         fonts_path = f'{os.path.dirname(__file__)}/../../fonts'
@@ -137,48 +237,23 @@ class RunText(SampleBase):
         offscreen_canvas = self.matrix.CreateFrameCanvas()
         font = graphics.Font()
         font.LoadFont(f"{fonts_path}/10x20.bdf")
-        text_color = graphics.Color(255, 255, 0)
+        # text_color = graphics.Color(255, 255, 0)
         my_text = self.args.text
-
-        t_len = text_len(font, my_text)
-        print("text length:", t_len)
-
-        font_y_offset = -(font.headers['fbby'] + font.headers['fbbyoff'])
-        print("font_y_offset:", font_y_offset)
+        #
+        # t_len = text_len(font, my_text)
+        # print("text length:", t_len)
+        #
+        # font_y_offset = -(font.headers['fbby'] + font.headers['fbbyoff'])
+        # print("font_y_offset:", font_y_offset)
 
         offscreen_canvas.Clear()
+        offscreen_canvas = self.matrix.SwapOnVSync(offscreen_canvas)
 
-        wx = 10
-        wy = 30
-        wd = 80
+        print('go?')
+        input()
+        self.scroll_test_3(offscreen_canvas, font, my_text, wrap_when_pos_offset=True)
 
-        # offset = 30
-        #
-        # graphics.DrawLine(offscreen_canvas, wx-1, wy-1+20+font_y_offset, wx+0+wd, wy-1+20+font_y_offset, Color(200, 200, 200))
-        # graphics.DrawLine(offscreen_canvas, wx-1, wy-1+0+font_y_offset, wx+0+wd, wy-1+0+font_y_offset, Color(200, 200, 200))
-        # graphics.DrawLine(offscreen_canvas, wx-1, wy-1+0+font_y_offset, wx-1, wy-1+20+font_y_offset, Color(200, 200, 200))
-        # graphics.DrawLine(offscreen_canvas, wx+0+wd, wy-1+0+font_y_offset, wx+0+wd, wy-1+20+font_y_offset, Color(200, 200, 200))
-        #
-        # draw_text(offscreen_canvas, font, wx, wy, text_color, my_text, text_offset=offset, window_width=wd, wrap_around=True)
-        # offscreen_canvas = self.matrix.SwapOnVSync(offscreen_canvas)
-        # print("return to quit")
-        # input()
-        # return
-
-        offset = 40
-        while True:
-            offscreen_canvas.Clear()
-            graphics.DrawLine(offscreen_canvas, wx-1, wy-1+20+font_y_offset, wx+0+wd, wy-1+20+font_y_offset, Color(200, 200, 200))
-            graphics.DrawLine(offscreen_canvas, wx-1, wy-1+0+font_y_offset, wx+0+wd, wy-1+0+font_y_offset, Color(200, 200, 200))
-            graphics.DrawLine(offscreen_canvas, wx-1, wy-1+0+font_y_offset, wx-1, wy-1+20+font_y_offset, Color(200, 200, 200))
-            graphics.DrawLine(offscreen_canvas, wx+0+wd, wy-1+0+font_y_offset, wx+0+wd, wy-1+20+font_y_offset, Color(200, 200, 200))
-
-            draw_text(offscreen_canvas, font, wx, wy, text_color, my_text, text_offset=offset, window_width=wd, wrap_around=True)
-            offset = (offset + 1) % t_len
-
-            offscreen_canvas = self.matrix.SwapOnVSync(offscreen_canvas)
-            # time.sleep(0.1)
-            # break
+        # offscreen_canvas.Clear()
 
         # print("done")
         # input()
@@ -186,39 +261,6 @@ class RunText(SampleBase):
         # pos = -offscreen_canvas.width
         # # pos = 150   # debug, gagner du temps
         # wrap = False
-        # while True:
-        #     offscreen_canvas.Clear()
-        #
-        #     draw_text(offscreen_canvas, font, 0, 30, text_color, my_text)
-        #
-        #     # len = graphics.DrawText(offscreen_canvas, font, pos, 30, text_color, my_text)
-        #     t_len = draw_text(offscreen_canvas, font, 0, 30, text_color, my_text, text_offset=pos, wrap_around=wrap)
-        #     # if pos < 0:
-        #     pos += 1
-        #
-        #     # no wrap-around:
-        #     # if pos >= t_len:
-        #     #     pos = -offscreen_canvas.width
-        #
-        #     # input()
-        #
-        #     # wrap-around:
-        #     if pos >= t_len:
-        #         print(f"pos >= t_len {pos}")
-        #         # pos = t_len - offscreen_canvas.width
-        #         pos = 0
-        #         wrap = True
-        #
-        #     # else:
-        #     #     pos
-        #     # if pos < 0:
-        #     #     pos = offscreen_canvas.width
-        #         # wrap = True
-        #     # if pos + t_len < 0:
-        #     #     pos = offscreen_canvas.width
-        #
-        #     time.sleep(0.05)
-        #     offscreen_canvas = self.matrix.SwapOnVSync(offscreen_canvas)
 
 
 # Main function
