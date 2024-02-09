@@ -161,7 +161,7 @@ class ScrollTextDemo(SampleBase):
                                      wrap_around=True,
                                      border=True, border_color=Color(0, 200, 200))
         scroller3 = self.scroll_text(font, text, Color(0, 255, 0),
-                                     initial_offset=-40, wx=65, wy=30, wd=40, speed=1.0,
+                                     initial_offset=-40, wx=75, wy=32, wd=40, speed=1.0,
                                      wrap_around=True,
                                      border=True, border_color=Color(255, 200, 0))
         # color_callback=lambda xt: Color(xt/t_len*255, 100, 0))
@@ -169,7 +169,7 @@ class ScrollTextDemo(SampleBase):
             self.clear()
             next(scroller1)
             next(scroller2)
-            self.rectangle(65, 30-16, 65+40, 30+3, Color.BLUE(), fill=True)
+            self.rectangle(75, 32-16, 75+40, 32+3, Color.BLUE(), fill=True)
             next(scroller3)
             self.refresh()
             time.sleep(0.03)
