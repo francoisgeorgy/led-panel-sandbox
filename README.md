@@ -82,6 +82,7 @@ First, copy `tools/install-go.sh` to the RPi.
 
 Then. do : 
 
+    mkdir -p ~/.local/share
     chmod +x install-go.sh
     ./install-go.sh
 
@@ -106,20 +107,20 @@ Install shady :
 
     go install github.com/polyfloyd/shady/cmd/shady@latest
 
-Create a directory for the shaders scripts : 
+Clone this repository : 
 
     cd /home/sandbox
-    git clone https://github.com/francoisgeorgy/led-panel-sandbox.git .
+    git clone https://github.com/francoisgeorgy/led-panel-sandbox.git
 
 Test `shady` : 
 
-    cd /home/sanbox
+    cd /home/sandbox/led-panel-sandbox
 
     export EGL_PLATFORM=surfaceless
     export MESA_GL_VERSION_OVERRIDE=3.3
  
     shady -ofmt rgb24 -g 128x64 -f 20 -i src/shaders/example.frag -w \
-        | sudo /home/sanbox/rpi-rgb-led-matrix/examples-api-use/ledcat \
+        | sudo /home/sandbox/rpi-rgb-led-matrix/examples-api-use/ledcat \
             --led-rows=64 --led-cols=64 --led-slowdown-gpio=5 \
             --led-brightness=66
 
