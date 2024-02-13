@@ -143,6 +143,9 @@ Tools :
     cd /home/sandbox
     python3 -m venv --system-site-packages .venv
     source .venv/bin/activate
+
+On your dev machine (your PC or your Mac) you can install the simulator with : 
+
     pip install RGBMatrixEmulator
 
     
