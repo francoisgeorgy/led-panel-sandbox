@@ -148,4 +148,23 @@ On your dev machine (your PC or your Mac) you can install the simulator with :
 
     pip install RGBMatrixEmulator
 
-    
+
+----
+
+## Notes : 
+
+### Using "sudo" in a Python venv : 
+
+We need to have root privileges to get good performances, so we need to use sudo.
+
+Here is how to use a python venv with sudo  :
+
+    sudo -E env PATH=$PATH ...
+
+example : 
+
+    (.venv) $ sudo -E env PATH=$PATH python -c 'import sys; print(sys.path)'
+    (.venv) $ sudo -E env PATH=$PATH pip -VV
+
+Note: sudo is only needed when running a python script which uses the rip-rgb lib. It is not needed otherwise.
+
