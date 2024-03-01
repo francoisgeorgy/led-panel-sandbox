@@ -89,6 +89,7 @@ class SampleBase(object):
                                      default=100, type=int)
 
         self.args = None
+        self.rw_canvas = None
 
         # self.parser.add_argument("-r", "--led-rows", action="store",
         #                          help="Display rows. 16 for 16x32, 32 for 32x32. Default: 32", default=64, type=int)
@@ -174,18 +175,26 @@ class SampleBase(object):
 
         self.matrix = rgb_matrix_lib.RGBMatrix(options=options)
         self.canvas = self.matrix.CreateFrameCanvas()
+        self.rw_canvas = [[[0, 0, 0] for i in range(self.canvas.width)] for j in range(self.canvas.height)]
 
     def clear(self):
         self.canvas.Clear()
+        self.rw_canvas = [[[0, 0, 0] for i in range(self.canvas.width)] for j in range(self.canvas.height)]
 
     def refresh(self):
         self.canvas = self.matrix.SwapOnVSync(self.canvas)
 
     def pixel(self, x, y, color):
         self.canvas.SetPixel(x, y, color.red, color.green, color.blue)
+        self.rw_canvas[y][x] = [*color]
+
+    def get_pixel(self, x: int, y: int) -> tuple[int, int, int]:
+        return self.rw_canvas[y][x]
 
     def line(self, x0, y0, x1, y1, color):
         rgb_graphics.DrawLine(self.canvas, x0, y0, x1, y1, color)
+        # TODO: draw line in the rw_canvas too.
+        # see https://github.com/ty-porter/RGBMatrixEmulator/blob/main/RGBMatrixEmulator/graphics/__init__.py#L75 as example
 
     def rectangle(self, x0, y0, x1, y1, color, fill=False):
         if fill:
