@@ -2,6 +2,7 @@ import argparse
 import time
 import importlib
 import io
+from color import Color
 
 
 def usleep(value):
@@ -152,7 +153,7 @@ class SampleBase(object):
         options.show_refresh_rate = 1 if self.args.led_show_refresh else 0
 
         if running_on_pi:
-            # options.hardware_mapping = self.args.led_gpio_mapping
+            options.hardware_mapping = self.args.led_gpio_mapping
             options.row_address_type = self.args.led_row_addr_type
             options.multiplexing = self.args.led_multiplexing
             options.pwm_bits = self.args.led_pwm_bits
@@ -186,15 +187,143 @@ class SampleBase(object):
 
     def pixel(self, x, y, color):
         self.canvas.SetPixel(x, y, color.red, color.green, color.blue)
-        self.rw_canvas[y][x] = [*color]
+        # try:
+        self.rw_canvas[y][x] = [color.red, color.green, color.blue]
+        # except IndexError as e:
+        #     print(f'index error: [{y}][{x}]', len(self.rw_canvas), len(self.rw_canvas[0]))
 
     def get_pixel(self, x: int, y: int) -> tuple[int, int, int]:
         return self.rw_canvas[y][x]
 
-    def line(self, x0, y0, x1, y1, color):
-        rgb_graphics.DrawLine(self.canvas, x0, y0, x1, y1, color)
-        # TODO: draw line in the rw_canvas too.
+    def line0(self, x0, y0, x1, y1, color, mode_xor=False):
+        # rgb_graphics.DrawLine(self.canvas, x0, y0, x1, y1, color)
         # see https://github.com/ty-porter/RGBMatrixEmulator/blob/main/RGBMatrixEmulator/graphics/__init__.py#L75 as example
+        '''
+        Line drawing algorithm
+
+        Extracted from scikit-image:
+        https://github.com/scikit-image/scikit-image/blob/00177e14097237ef20ed3141ed454bc81b308f82/skimage/draw/_draw.pyx#L44
+
+        Generate line pixel coordinates.
+
+        Parameters
+        ----------
+        x1, y1 : int            Starting position (row, column).
+        x2, y2 : int            End position (row, column).
+
+        Returns
+        -------
+        rr, cc : (N,) ndarray of int
+            Indices of pixels that belong to the line.
+            May be used to directly index into an array, e.g.
+            ``img[rr, cc] = 1``.
+
+        See Also
+        --------
+        line_aa : Anti-aliased line generator
+        :param y1:
+        :param x1:
+        :param y0:
+        :param x0:
+        :param mode_xor:
+        :param color:
+        '''
+        steep = 0
+        x = x0
+        y = y0
+        dx = abs(x1 - x0)
+        dy = abs(y1 - y0)
+
+        xi = 1 if x0 < x1 else -1
+        # if (x1 - x) > 0:
+        #     xi = 1
+        # else:
+        #     xi = -1
+
+        yi = 1 if y0 < y1 else -1
+        # if (y1 - y) > 0:
+        #     yi = 1
+        # else:
+        #     yi = -1
+
+        if dx > dy:
+            steep = 1
+            y, x = x, y
+            dy, dx = dx, dy
+            yi, xi = xi, yi
+        d = (2 * dx) - dy
+
+        for i in range(dy):
+            if steep:
+                px, py = y, x
+                # self.pixel(c, r, color)
+            else:
+                px, py = x, y
+                # self.pixel(r, c, color)
+
+            pixel_color = color
+            if mode_xor:
+                p = self.get_pixel(px, py)
+                if p == [color.red, color.green, color.blue]:
+                    pixel_color = Color.BLACK()
+
+            self.pixel(px, py, pixel_color)
+
+            while d >= 0:
+                x = x + xi
+                d = d - (2 * dy)
+            y = y + yi
+            d = d + (2 * dx)
+
+        self.pixel(x1, y1, color)
+    def line(self, x0, y0, x1, y1, color, mode_xor=False):
+        '''
+        Line drawing algorithm
+
+        Source : https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm
+
+        Parameters
+        ----------
+        x1, y1 : int            Starting position (row, column).
+        x2, y2 : int            End position (row, column).
+
+        See Also
+        --------
+        line_aa : Anti-aliased line generator
+        :param y1:
+        :param x1:
+        :param y0:
+        :param x0:
+        :param mode_xor:
+        :param color:
+        '''
+        x = x0
+        y = y0
+        xi = 1 if x0 < x1 else -1
+        yi = 1 if y0 < y1 else -1
+        dx = abs(x1 - x0)
+        dy = -abs(y1 - y0)
+        error = dx + dy
+        while True:
+            pixel_color = color
+            if mode_xor:
+                p = self.get_pixel(x, y)
+                if p == [color.red, color.green, color.blue]:
+                    pixel_color = Color.BLACK()
+            self.pixel(x, y, pixel_color)
+            if x == x1 and y == y1:
+                break
+            e2 = 2 * error
+            if e2 >= dy:
+                if x == x1:
+                    break
+                error = error + dy
+                x = x + xi
+            if e2 <= dx:
+                if y == y1:
+                    break
+                error = error + dx
+                y = y + yi
 
     def rectangle(self, x0, y0, x1, y1, color, fill=False):
         if fill:
