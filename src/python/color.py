@@ -65,3 +65,6 @@ class Color(rgb_graphics.Color):
     @classmethod
     def GREY(cls):
         return Color(177, 177, 190)
+
+
+WHITE = Color.WHITE()
