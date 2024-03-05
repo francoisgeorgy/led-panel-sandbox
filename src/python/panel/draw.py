@@ -99,7 +99,7 @@ def text_len(font, t):
 
 def draw_text(panel, font, x, y, color, text, window_width=-1, text_offset=0,
               wrap_around=False, wrap_positive_only=True,
-              color_callback=None):
+              color_callback=None, mode=MODE_OVERWRITE):
     """
 
     :param panel:
@@ -126,10 +126,10 @@ def draw_text(panel, font, x, y, color, text, window_width=-1, text_offset=0,
     font_y_offset = -(font.headers['fbby'] + font.headers['fbbyoff'])
     text_height = len(text_map)
 
-    # if window_width < 0:
-    #     print_width = panel.width - x
-    # else:
-    print_width = window_width
+    if window_width < 0:
+        print_width = panel.width - x
+    else:
+        print_width = window_width
 
     if isinstance(color, tuple):
         c = Color(color.red, color.green, color.blue)
@@ -159,7 +159,7 @@ def draw_text(panel, font, x, y, color, text, window_width=-1, text_offset=0,
         for row in text_map:
             if row[xt]:
                 # panel.SetPixel(x + i, y + j + font_y_offset, c.red, c.green, c.blue)
-                panel.pixel(x + i, y + j + font_y_offset, c)
+                panel.pixel(x + i, y + j + font_y_offset, c, mode=mode)
             j = j + 1
 
     return print_width, text_height
@@ -169,7 +169,8 @@ def text_scroller(panel, font, text, color, wx, wy, wd, initial_offset=0,
                   wrap_around=False,
                   wrap_when_pos_offset=True, speed=1.0,
                   border=None, #False, border_color=Color(0, 0, 0),
-                  color_callback=None):
+                  color_callback=None,
+                  mode=MODE_OVERWRITE):
 
     t_len = text_len(font, text)
     y_offset = -(font.headers['fbby'] + font.headers['fbbyoff'])
@@ -181,13 +182,13 @@ def text_scroller(panel, font, text, color, wx, wy, wd, initial_offset=0,
 
         w, h = draw_text(panel, font, wx, wy, color, text, text_offset=ioffset, window_width=wd,
                          wrap_around=wrap_around, wrap_positive_only=wrap_positive_only,
-                         color_callback=color_callback)
+                         color_callback=color_callback, mode=mode)
 
         if border:
-            line(panel, wx - 1, wy + y_offset + h, wx + w, wy + y_offset + h, border)
-            line(panel, wx - 1, wy + y_offset, wx + w, wy + y_offset, border)
-            line(panel, wx - 1, wy + y_offset, wx - 1, wy + y_offset + h, border)
-            line(panel, wx + w, wy + y_offset, wx + w, wy + y_offset + h, border)
+            line(panel, wx - 1, wy + y_offset + h, wx + w, wy + y_offset + h, border, mode)
+            line(panel, wx - 1, wy + y_offset, wx + w, wy + y_offset, border, mode)
+            line(panel, wx - 1, wy + y_offset, wx - 1, wy + y_offset + h, border, mode)
+            line(panel, wx + w, wy + y_offset, wx + w, wy + y_offset + h, border, mode)
 
         offset = offset + 1 * speed
 
