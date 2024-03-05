@@ -1,7 +1,6 @@
-import color
 import time
 
-from panel import Panel, MODE_XOR
+from panel import Panel, MODE_XOR, color
 from panel.draw import checkerboard, line
 
 

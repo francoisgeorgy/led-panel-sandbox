@@ -1,9 +1,9 @@
+import random
+import time
 from math import sin, cos
 
-import time
-
-from panel import Panel, color
-from panel.draw import line
+from panel import Panel, MODE_XOR, color
+from panel.draw import line, rectangle
 
 """
     line eq : 
@@ -32,6 +32,18 @@ class App(Panel):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+    def grid_by_positions(self, size, positions, c):
+        for (x, y) in positions:
+            rectangle(self, x, y, size, size, c, fill=True)
+
+    def get_random_positions(self, size):
+        p = []
+        for x in range(0, self.canvas.width, size):
+            for y in range(0, self.canvas.height, size):
+                if bool(random.getrandbits(1)):
+                    p.append((x, y))
+        return p
 
     def scale_and_offset(self, x, y, sx, sy, x0=0, y0=0):
         """
@@ -93,6 +105,8 @@ class App(Panel):
         return x_start, y_start, x_end, y_end
 
     def run(self):
+        grid_size = self.args.grid_size
+        positions = self.get_random_positions(grid_size)
 
         scale_x, scale_y = get_scale_factors(4.0, 2.0, 127, 63, 1.0)
 
@@ -102,8 +116,9 @@ class App(Panel):
         t = 0
         while True:
             self.clear()
+            self.grid_by_positions(grid_size, positions, color.WHITE)
 
-            m = sin(t / 20) / 1
+            m = (sin(t / 20) + cos(t / 11)) / 2
             b = sin(t / 30) / 1
 
             xs, ys, xe, ye = self.find_crossings(-2, -1, 2, 1, lambda y: fx(y, m, b), lambda x: fy(x, m, b))
@@ -113,14 +128,16 @@ class App(Panel):
             x0, y0 = self.scale_and_offset(xs, ys, scale_x, scale_y, x_offset, y_offset)
             x1, y1 = self.scale_and_offset(xe, ye, scale_x, scale_y, x_offset, y_offset)
 
-            line(self, x0, y0, x1, y1, color.WHITE)
+            line(self, x0, y0, x1, y1, color.WHITE, mode=MODE_XOR)
             self.refresh()
             t = t + 1
             time.sleep(0.02)
+            # if t % 50 == 0:
+            #     time.sleep(2)
 
 
 if __name__ == "__main__":
-    s = App()
+    s = App(add_args=[{'name': '--grid-size', 'help': 'Size of the grid in pixels', 'default': 1, 'type': int}])
     try:
         s.run()
     except KeyboardInterrupt:

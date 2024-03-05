@@ -1,5 +1,5 @@
 # adapted from from RGBMatrixEmulator.graphics.color.py
-from base import rgb_graphics
+from panel import rgb_graphics
 
 
 class Color(rgb_graphics.Color):

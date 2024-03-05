@@ -1,5 +1,5 @@
-from color import Color
 from panel import MODE_OVERWRITE, rgb_graphics
+from panel.color import Color
 
 
 def line(panel, x0, y0, x1, y1, color, mode=MODE_OVERWRITE):
@@ -51,7 +51,7 @@ def line(panel, x0, y0, x1, y1, color, mode=MODE_OVERWRITE):
 
 def rectangle(panel, x, y, w, h, color, fill=False, mode=MODE_OVERWRITE):
     if w == 1 and h == 1:
-        panel.pixel(x, y, color, mode, mode)
+        panel.pixel(x, y, color, mode)
     elif fill:
         for v in range(h):
             line(panel, x, y + v, x + w - 1, y + v, color, mode)
@@ -78,7 +78,6 @@ def circle(panel, x0, y0, r, color, mode=MODE_OVERWRITE):
 
 def text(panel, x, y, color, text, font, mode=MODE_OVERWRITE):
     rgb_graphics.DrawText(panel.canvas, font, x, y, color, text)
-
 
 
 def __actual_width(font, letter):
@@ -164,3 +163,45 @@ def draw_text(panel, font, x, y, color, text, window_width=-1, text_offset=0,
             j = j + 1
 
     return print_width, text_height
+
+
+def text_scroller(panel, font, text, color, wx, wy, wd, initial_offset=0,
+                  wrap_around=False,
+                  wrap_when_pos_offset=True, speed=1.0,
+                  border=None, #False, border_color=Color(0, 0, 0),
+                  color_callback=None):
+
+    t_len = text_len(font, text)
+    y_offset = -(font.headers['fbby'] + font.headers['fbbyoff'])
+    wrap_positive_only = wrap_when_pos_offset
+
+    offset = initial_offset
+    while True:
+        ioffset = int(offset)
+
+        w, h = draw_text(panel, font, wx, wy, color, text, text_offset=ioffset, window_width=wd,
+                         wrap_around=wrap_around, wrap_positive_only=wrap_positive_only,
+                         color_callback=color_callback)
+
+        if border:
+            line(panel, wx - 1, wy + y_offset + h, wx + w, wy + y_offset + h, border)
+            line(panel, wx - 1, wy + y_offset, wx + w, wy + y_offset, border)
+            line(panel, wx - 1, wy + y_offset, wx - 1, wy + y_offset + h, border)
+            line(panel, wx + w, wy + y_offset, wx + w, wy + y_offset + h, border)
+
+        offset = offset + 1 * speed
+
+        if wrap_around and not wrap_positive_only and wrap_when_pos_offset and offset >= 0:
+            wrap_positive_only = True
+
+        if wrap_around:
+            if offset > 0:
+                offset = offset % t_len
+        else:
+            # same behavior
+            if offset >= t_len:
+                offset = initial_offset
+        # yield
+        z = yield wx, wy
+        if z is not None:
+            wx, wy = z

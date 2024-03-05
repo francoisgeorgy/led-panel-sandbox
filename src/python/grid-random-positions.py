@@ -1,10 +1,9 @@
 import random
 
-from panel import Panel
-import color
+from panel import Panel, color
 import time
 
-from panel.draw import line, rectangle
+from panel.draw import rectangle
 
 
 class Grid(Panel):

@@ -67,8 +67,8 @@ class App(SampleBase):
         :param y: value to scale
         :param sx: scale x
         :param sy: scale y
-        :param x0: destination value for x=0
-        :param y0: destination value for y=0
+        :param x0: target value for x=0
+        :param y0: target value for y=0
         :return: scaled x and y
         """
         scaled_x = int(x * sx + 0.5)
@@ -120,7 +120,7 @@ class App(SampleBase):
         return x_start, y_start, x_end, y_end
 
     def run(self):
-        grid_size = int(self.args.grid_size)
+        grid_size = self.args.grid_size
         p = self.get_random_positions(grid_size)
 
         # FIXME: move into setup()

@@ -2,7 +2,6 @@ import importlib
 import io
 import argparse
 
-from color import Color
 
 MODE_OVERWRITE = 0
 MODE_XOR = 1
@@ -100,7 +99,7 @@ class Panel:
                                      help=f"Sets brightness level. Default: 100. Range: 1..100",
                                      default=100, type=int)
 
-        if kwargs['add_args']:
+        if 'add_args' in kwargs and kwargs['add_args']:
             for a in kwargs['add_args']:
                 self.parser.add_argument(a['name'], help=a['help'], default=a['default'], type=a['type'])
 

@@ -1,5 +1,4 @@
 import random
-from math import sin, cos
 
 from samplebase import SampleBase
 from color import Color
@@ -34,25 +33,37 @@ class App(SampleBase):
 
     def run(self):
         # grid_size = self.args.grid_size
-        # x0, y0 = 0, 0
+        x0, y0 = 0, 0
         x1, y1 = self.canvas.width - 1, self.canvas.height - 1
-        t = 0
+        mx0 = 1
+        mx1 = -1
+        my = 1
         while True:
             self.clear()
             # self.draw_grid(grid_size, Color.WHITE())
-            x0 = int((sin(t / 20) + 1) / 2 * 127 + 0.5)
-            x1 = int((cos(t / 30 + 3) + 1) / 2 * 127 + 0.5)
-            # y0 = int((sin(t / 20) + 1) / 2 * 63 + 0.5)
-            # y1 = int((cos(t / 30 + 3) + 1) / 2 * 63 + 0.5)
-
-            # TODO:
-            # compute line equation
-
-            # print(mx0)
             self.line(x0, y0, x1, y1, Color.WHITE())
             self.refresh()
-            t = t + 1
-            time.sleep(0.01)
+            if random.random() < 0.01:
+                print("mx0", mx0, mx1)
+                mx0 = -mx0
+            if random.random() < 0.005:
+                print("mx1", mx0, mx1)
+                mx1 = -mx1
+            x0 = x0 + mx0
+            if x0 < 0:
+                x0 = 0
+                mx0 = -mx0
+            if x0 >= self.canvas.width:
+                x0 = self.canvas.width - 1
+                mx0 = -mx0
+            x1 = x1 + mx1
+            if x1 < 1:
+                x1 = 1
+                mx1 = -mx1
+            if x1 >= self.canvas.width:
+                x1 = self.canvas.width - 1
+                mx1 = -mx1
+            time.sleep(0.02)
 
 
 if __name__ == "__main__":

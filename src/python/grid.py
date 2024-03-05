@@ -1,5 +1,4 @@
-from panel import Panel
-import color
+from panel import Panel, color
 import time
 
 from panel.draw import line
