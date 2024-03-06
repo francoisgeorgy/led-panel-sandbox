@@ -24,6 +24,51 @@ def fy(x, m, b):
     return m * x + b
 
 
+def find_crossings(x0, y0, x1, y1, fx, fy):
+    """
+    Find the points where the function crosses the rectangle defined by (x0,y0) and (x1,y1)
+    :param x0:
+    :param y0:
+    :param x1:
+    :param y1:
+    :return: two (x,y) points which are the crossings or None if no crossings
+    """
+    x_start, y_start, x_end, y_end = None, None, None, None
+    x_left = x0
+    y_left = fy(x_left)
+    y_top = y0
+    x_top = fx(y_top)
+    x_right = x1
+    y_right = fy(x_right)
+    y_bottom = y1
+    x_bottom = fx(y_bottom)
+    if y0 <= y_left <= y1:
+        x_start = x_left
+        y_start = y_left
+    if x0 <= x_top <= x1:
+        if x_start is None:
+            x_start = x_top
+            y_start = y_top
+        else:
+            x_end = x_top
+            y_end = y_top
+    if (x_start is None or x_end is None) and (y0 <= y_right <= y1):
+        if x_start is None:
+            x_start = x_right
+            y_start = y_right
+        else:
+            x_end = x_right
+            y_end = y_right
+    if (x_start is None or x_end is None) and (x0 <= x_bottom <= x1):
+        if x_start is None:
+            x_start = x_bottom
+            y_start = y_bottom
+        else:
+            x_end = x_bottom
+            y_end = y_bottom
+    return x_start, y_start, x_end, y_end
+
+
 def get_scale_factors(dx, dy, dw, dh, zoom=1.0):
     return dw / dx * zoom, dh / dy * zoom
 
@@ -60,50 +105,6 @@ class App(Panel):
         scaled_y = int(y * sy + 0.5)
         return scaled_x + x0, self.height - (scaled_y + y0)
 
-    def find_crossings(self, x0, y0, x1, y1, fx, fy):
-        """
-        Find the points where the function crosses the rectangle defined by (x0,y0) and (x1,y1)
-        :param x0:
-        :param y0:
-        :param x1:
-        :param y1:
-        :return: two (x,y) points which are the crossings or None if no crossings
-        """
-        x_start, y_start, x_end, y_end = None, None, None, None
-        x_left = x0
-        y_left = fy(x_left)
-        y_top = y0
-        x_top = fx(y_top)
-        x_right = x1
-        y_right = fy(x_right)
-        y_bottom = y1
-        x_bottom = fx(y_bottom)
-        if y0 <= y_left <= y1:
-            x_start = x_left
-            y_start = y_left
-        if x0 <= x_top <= x1:
-            if x_start is None:
-                x_start = x_top
-                y_start = y_top
-            else:
-                x_end = x_top
-                y_end = y_top
-        if (x_start is None or x_end is None) and (y0 <= y_right <= y1):
-            if x_start is None:
-                x_start = x_right
-                y_start = y_right
-            else:
-                x_end = x_right
-                y_end = y_right
-        if (x_start is None or x_end is None) and (x0 <= x_bottom <= x1):
-            if x_start is None:
-                x_start = x_bottom
-                y_start = y_bottom
-            else:
-                x_end = x_bottom
-                y_end = y_bottom
-        return x_start, y_start, x_end, y_end
-
     def run(self):
         grid_size = self.args.grid_size
         positions = self.get_random_positions(grid_size)
@@ -121,7 +122,7 @@ class App(Panel):
             m = (sin(t / 20) + cos(t / 11)) / 2
             b = sin(t / 30) / 1
 
-            xs, ys, xe, ye = self.find_crossings(-2, -1, 2, 1, lambda y: fx(y, m, b), lambda x: fy(x, m, b))
+            xs, ys, xe, ye = find_crossings(-2, -1, 2, 1, lambda y: fx(y, m, b), lambda x: fy(x, m, b))
             if xs is None or ys is None or xe is None or ye is None:
                 continue
 

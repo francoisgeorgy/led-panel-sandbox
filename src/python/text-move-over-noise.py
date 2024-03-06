@@ -1,7 +1,5 @@
 import os
 import random
-import time
-from math import sin, cos
 
 from panel import Panel, MODE_XOR, color
 from panel.draw import line, rectangle, text_len, text_scroller
