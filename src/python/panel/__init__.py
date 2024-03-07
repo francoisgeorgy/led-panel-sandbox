@@ -24,8 +24,10 @@ if running_on_pi:
     rgb_matrix_lib = importlib.import_module('rgbmatrix')
     rgb_graphics = importlib.import_module('rgbmatrix.graphics')
 else:
-    rgb_matrix_lib = importlib.import_module('RGBMatrixEmulator')
-    rgb_graphics = importlib.import_module('RGBMatrixEmulator.graphics')
+    # rgb_matrix_lib = importlib.import_module('RGBMatrixEmulator')
+    # rgb_graphics = importlib.import_module('RGBMatrixEmulator.graphics')
+    rgb_matrix_lib = importlib.import_module('panel.emulator')
+    rgb_graphics = importlib.import_module('panel.emulator.graphics')
 
 
 class Panel:
