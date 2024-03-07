@@ -39,7 +39,7 @@ class Panel:
         self.parser.add_argument("-r", "--led-rows", action="store",
                                  help=f"Display rows. 16 for 16x32, 32 for 32x32. Default: 64", default=64, type=int)
         self.parser.add_argument("-l", "--led-cols", action="store",
-                                 help=f"Panel columns. Typically 32 or 64. (Default: 128)", default=128, type=int)
+                                 help=f"Panel columns. Typically 32 or 64. Default: 128", default=128, type=int)
         self.parser.add_argument("--led-show-refresh", action="store_true",
                                  help="Shows the current refresh rate of the LED panel")
 

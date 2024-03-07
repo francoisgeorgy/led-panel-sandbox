@@ -1,4 +1,5 @@
 import os
+import sys
 
 from panel import Panel, color
 import time
@@ -19,7 +20,7 @@ class App(Panel):
                 if os.path.isfile(f'{self.args.fonts}/{f}') and f.endswith(".bdf"):
                     self.clear()
                     self.canvas.Fill(0, 0, 80)
-                    print(f, font.baseline, font.height)
+                    # print(f, font.baseline, font.height)
                     font.LoadFont(f'{self.args.fonts}/{f}')
                     draw_text(self, font, 0, font.height, color.WHITE, f)   #, window_width=self.width)
                     self.refresh()
@@ -28,6 +29,7 @@ class App(Panel):
 
 
 if __name__ == "__main__":
+    sys.argv += ["--led-rows", "64", "--led-cols", "256"]
     s = App(add_args=[{'name': '--fonts', 'help': 'path to the folder containings the fonts', 'default': '.', 'type': str}])
     try:
         s.run()
