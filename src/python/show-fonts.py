@@ -4,8 +4,28 @@ import sys
 from panel import Panel, color
 import time
 
-from panel.draw import draw_text
+from panel.draw import draw_text, text_len
 from panel.font import Font
+
+
+def split_text(font, text, max_width):
+    parts = []
+    t = text
+    while text_len(font, t) > max_width:
+        # if ' ' in t:
+        #     p = t.split(' ', 1)
+        #     parts.append(p[0])
+        #     t = p[1]
+        # else:
+        i = -1
+        n = 0
+        while n < max_width and i < len(t):
+            i = i + 1
+            n = n + font.CharacterWidth(ord(t[i]))
+        parts.append(t[0:i])
+        t = t[i:]
+    parts.append(t)
+    return parts
 
 
 class App(Panel):
@@ -18,15 +38,24 @@ class App(Panel):
         while True:
             for f in os.listdir(self.args.fonts):
                 if os.path.isfile(f'{self.args.fonts}/{f}') and f.endswith(".bdf"):
+                    # print(f)
                     self.clear()
                     self.canvas.Fill(0, 0, 80)
                     try:
                         font.LoadFont(f'{self.args.fonts}/{f}')
                         # print(text, font.height, font.baseline, font)
-                        draw_text(self, font, 0, font.height, color.WHITE, self.args.text)
+
+                        text_width = text_len(font, self.args.text)
+                        if text_width > self.width:
+                            parts = split_text(font, self.args.text, self.width)
+                            y = font.height
+                            for p in parts:
+                                draw_text(self, font, 0, y, color.WHITE, p)
+                                y = y + font.height
+                        else:
+                            draw_text(self, font, 0, font.height, color.WHITE, self.args.text)
                         if self.args.saveto:
                             fname = f"{font.height:02}_{f.replace('.bdf', '')}.jpg"
-                            # print(fname)
                             self.canvas.draw_to_file(f"{self.args.saveto}/{fname}")
                         self.refresh()
                         time.sleep(0.5)
